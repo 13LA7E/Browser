@@ -1,7 +1,7 @@
 {
-  "name": "electron-browser",
+  "name": "lunis-browser",
   "version": "1.0.0",
-  "description": "Cross-platform web browser built with Electron, TypeScript, and React",
+  "description": "Lunis Browser - A modern cross-platform web browser built with Electron, TypeScript, and React",
   "main": "dist/main/main.js",
   "scripts": {
     "start": "npm run build && electron .",
@@ -11,8 +11,8 @@
     "build:renderer": "webpack --config webpack.config.js",
     "watch": "webpack --config webpack.config.js --watch",
     "clean": "rimraf dist",
-    "package": "npm run build && npx electron-packager . \"Electron Browser\" --platform=win32 --arch=x64 --out=release --overwrite --asar --icon=icon.ico",
-    "package:all": "npm run build && npx electron-packager . \"Electron Browser\" --all --out=release --overwrite --asar"
+    "package": "npm run build && npx electron-packager . \"Lunis Browser\" --platform=win32 --arch=x64 --out=release --overwrite --asar --icon=icon.ico",
+    "package:all": "npm run build && npx electron-packager . \"Lunis Browser\" --all --out=release --overwrite --asar"
   },
   "keywords": [
     "electron",

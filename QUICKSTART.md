@@ -1,4 +1,4 @@
-# Browser Project - Quick Start Guide
+# Lunis Browser - Quick Start Guide
 
 ## What's Been Created
 

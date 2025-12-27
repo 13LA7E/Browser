@@ -1,4 +1,4 @@
-# Electron Browser - Executable Version
+# Lunis Browser - Executable Version
 
 ## ✅ Build Complete!
 
@@ -7,7 +7,7 @@ Your Windows executable has been created successfully!
 ### 📍 Location
 The executable is located at:
 ```
-C:\Browser\release\Electron Browser-win32-x64\Electron Browser.exe
+C:\Browser\release\Lunis Browser-win32-x64\Lunis Browser.exe
 ```
 
 ### 🚀 How to Run
@@ -17,17 +17,17 @@ C:\Browser\release\Electron Browser-win32-x64\Electron Browser.exe
 2. The browser will open automatically
 
 #### Option 2: Run the EXE Directly
-1. Navigate to: `release\Electron Browser-win32-x64\`
-2. Double-click **Electron Browser.exe**
+1. Navigate to: `release\Lunis Browser-win32-x64\`
+2. Double-click **Lunis Browser.exe**
 
 #### Option 3: Create a Desktop Shortcut
-1. Navigate to `release\Electron Browser-win32-x64\`
-2. Right-click **Electron Browser.exe**
+1. Navigate to `release\Lunis Browser-win32-x64\`
+2. Right-click **Lunis Browser.exe**
 3. Select **Send to** → **Desktop (create shortcut)**
 
 ### 📦 Distribution
 To share the browser with others:
-1. Copy the entire `release\Electron Browser-win32-x64\` folder
+1. Copy the entire `release\Lunis Browser-win32-x64\` folder
 2. Share the folder - they can run the .exe file directly
 3. No installation required! It's a portable application
 

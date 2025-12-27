@@ -1,4 +1,4 @@
-# Electron Browser
+# Lunis Browser
 
 A modern cross-platform web browser built with Electron, TypeScript, and React.
 

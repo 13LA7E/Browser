@@ -1,4 +1,4 @@
-# Cross-Platform Web Browser Project
+# Lunis Browser - Cross-Platform Web Browser Project
 
 ## Checklist
 - [x] Verify that the copilot-instructions.md file in the .github directory is created
@@ -12,7 +12,7 @@
 - [x] Ensure Documentation is Complete - README.md created
 
 ## Project Overview
-Cross-platform web browser using Electron, TypeScript, and React with:
+Lunis Browser - A modern cross-platform web browser using Electron, TypeScript, and React with:
 - Desktop support (Windows, Mac, Linux)
 - Tab management with BrowserView
 - Navigation controls (back, forward, reload, home)
@@ -28,11 +28,11 @@ Cross-platform web browser using Electron, TypeScript, and React with:
 The browser is ready to use!
 
 ### Run Options:
-1. **Executable**: Double-click `Launch Browser.bat` or run `release\Electron Browser-win32-x64\Electron Browser.exe`
+1. **Executable**: Double-click `Launch Browser.bat` or run `release\Lunis Browser-win32-x64\Lunis Browser.exe`
 2. **Development**: Run `npm start` from the command line
 
 ### Files Created:
-- Windows executable at `release\Electron Browser-win32-x64\Electron Browser.exe`
+- Windows executable at `release\Lunis Browser-win32-x64\Lunis Browser.exe`
 - Launcher batch file `Launch Browser.bat`
 - Complete documentation in `EXECUTABLE-README.md`
 
