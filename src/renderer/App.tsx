@@ -7,6 +7,8 @@ import History from './components/History';
 import Settings from './components/Settings';
 import Downloads from './components/Downloads';
 import FindInPage from './components/FindInPage';
+import HomePage from './components/HomePage';
+import { applyTheme } from './themes';
 
 declare global {
   interface Window {
@@ -14,16 +16,17 @@ declare global {
   }
 }
 
-type View = 'browser' | 'bookmarks' | 'history' | 'settings' | 'downloads';
+type View = 'browser' | 'bookmarks' | 'history' | 'settings' | 'downloads' | 'home';
 
 const App: React.FC = () => {
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [currentView, setCurrentView] = useState<View>('browser');
+  const [currentView, setCurrentView] = useState<View>('home');
   const [showFindInPage, setShowFindInPage] = useState(false);
   const [downloadCount, setDownloadCount] = useState(0);
+  const [showHomePage, setShowHomePage] = useState(true);
 
   // Handle drag and drop for URLs and files
   useEffect(() => {
@@ -64,9 +67,13 @@ const App: React.FC = () => {
     // Set up page event listeners
     window.electronAPI.onPageTitleUpdated((tabId: string, title: string) => {
       setTabs(prevTabs => 
-        prevTabs.map(tab => 
-          tab.id === tabId ? { ...tab, title } : tab
-        )
+        prevTabs.map(tab => {
+          // Don't update title if we're on the homepage (keep "Home" title)
+          if (tab.id === tabId && (tab.url === '' || tab.url === 'about:blank')) {
+            return { ...tab, title: 'Home' };
+          }
+          return tab.id === tabId ? { ...tab, title } : tab;
+        })
       );
     });
 
@@ -88,12 +95,21 @@ const App: React.FC = () => {
 
     window.electronAPI.onPageLoaded((tabId: string, updatedTab: Tab) => {
       setTabs(prevTabs => 
-        prevTabs.map(tab => 
-          tab.id === tabId ? updatedTab : tab
-        )
+        prevTabs.map(tab => {
+          if (tab.id === tabId) {
+            // If loading about:blank, keep it as Home page
+            if (updatedTab.url === 'about:blank' || updatedTab.url === '') {
+              return { ...tab, title: 'Home', url: '', isLoading: false };
+            }
+            return updatedTab;
+          }
+          return tab;
+        })
       );
-      // Add to history
-      window.electronAPI.addHistory(updatedTab.title, updatedTab.url);
+      // Don't add about:blank to history
+      if (updatedTab.url !== 'about:blank' && updatedTab.url !== '') {
+        window.electronAPI.addHistory(updatedTab.title, updatedTab.url);
+      }
     });
 
     // Listen for new tabs being created
@@ -104,13 +120,18 @@ const App: React.FC = () => {
         if (exists) {
           return prevTabs;
         }
-        return [...prevTabs, newTab];
+        // Set title and URL to Home for new tabs (since they start on homepage)
+        return [...prevTabs, { ...newTab, title: 'Home', url: '', isLoading: false }];
       });
       setActiveTabId(newTab.id);
+      // Ensure homepage is shown for new tabs
+      setShowHomePage(true);
+      setCurrentView('home');
     });
 
-    // Load bookmarks
+    // Load bookmarks and apply theme
     loadBookmarks();
+    loadInitialTheme();
 
     // Listen for keyboard shortcuts
     window.electronAPI.onShowFindInPage(() => {
@@ -127,14 +148,25 @@ const App: React.FC = () => {
     });
   }, []);
 
+  const loadInitialTheme = async () => {
+    try {
+      const settings = await window.electronAPI.getSettings();
+      if (settings && settings.theme) {
+        applyTheme(settings.theme);
+      }
+    } catch (error) {
+      console.error('Failed to load theme:', error);
+    }
+  };
+
   // Hide/show BrowserView when switching views
   useEffect(() => {
-    if (currentView === 'browser') {
+    if (currentView === 'browser' && !showHomePage) {
       window.electronAPI.showBrowserView();
     } else {
       window.electronAPI.hideBrowserView();
     }
-  }, [currentView]);
+  }, [currentView, showHomePage]);
 
   const loadBookmarks = async () => {
     try {
@@ -158,13 +190,22 @@ const App: React.FC = () => {
 
   const handleNewTab = () => {
     // Don't create tab in renderer - let main process do it
-    window.electronAPI.createTab('https://www.google.com');
+    window.electronAPI.createTab('about:blank');
+    setShowHomePage(true);
+    setCurrentView('home');
   };
 
   const handleCloseTab = (tabId: string) => {
-    setTabs(tabs.filter(tab => tab.id !== tabId));
-    if (activeTabId === tabId && tabs.length > 1) {
-      const remainingTabs = tabs.filter(tab => tab.id !== tabId);
+    const remainingTabs = tabs.filter(tab => tab.id !== tabId);
+    
+    // Close browser if this is the last tab
+    if (remainingTabs.length === 0) {
+      window.electronAPI.closeWindow();
+      return;
+    }
+    
+    setTabs(remainingTabs);
+    if (activeTabId === tabId) {
       setActiveTabId(remainingTabs[0]?.id || null);
     }
     window.electronAPI.closeTab(tabId);
@@ -172,10 +213,20 @@ const App: React.FC = () => {
 
   const handleSwitchTab = (tabId: string) => {
     setActiveTabId(tabId);
+    const switchedTab = tabs.find(tab => tab.id === tabId);
+    if (switchedTab && (switchedTab.url === '' || switchedTab.url === 'about:blank')) {
+      setShowHomePage(true);
+      setCurrentView('home');
+    } else {
+      setShowHomePage(false);
+      setCurrentView('browser');
+    }
     window.electronAPI.switchTab(tabId);
   };
 
   const handleNavigate = (url: string) => {
+    setShowHomePage(false);
+    setCurrentView('browser');
     window.electronAPI.navigateTo(url);
   };
 
@@ -192,7 +243,30 @@ const App: React.FC = () => {
   };
 
   const handleHome = () => {
-    window.electronAPI.navigateTo('https://www.google.com');
+    setCurrentView('home');
+    setShowHomePage(true);
+    // Update active tab to show Home
+    if (activeTabId) {
+      setTabs(prevTabs => 
+        prevTabs.map(tab => 
+          tab.id === activeTabId ? { ...tab, title: 'Home', url: '', isLoading: false } : tab
+        )
+      );
+    }
+  };
+
+  const handleHomePageNavigate = (url: string) => {
+    setShowHomePage(false);
+    setCurrentView('browser');
+    // Update the active tab's title temporarily (will be updated by page load)
+    if (activeTabId) {
+      setTabs(prevTabs => 
+        prevTabs.map(tab => 
+          tab.id === activeTabId ? { ...tab, title: 'Loading...', url: url, isLoading: true } : tab
+        )
+      );
+    }
+    window.electronAPI.navigateTo(url);
   };
 
   const handleZoomIn = () => {
@@ -250,7 +324,7 @@ const App: React.FC = () => {
       />
       
       <Toolbar
-        currentUrl={activeTab?.url || ''}
+        currentUrl={showHomePage ? '' : (activeTab?.url || '')}
         isLoading={activeTab?.isLoading || false}
         onNavigate={handleNavigate}
         onBack={handleBack}
@@ -259,15 +333,21 @@ const App: React.FC = () => {
         onHome={handleHome}
         onAddBookmark={handleAddBookmark}
         onShowBookmarks={() => {
+          setShowHomePage(false);
           setCurrentView('bookmarks');
           loadBookmarks();
         }}
         onShowHistory={() => {
+          setShowHomePage(false);
           setCurrentView('history');
           loadHistory();
         }}
-        onShowSettings={() => setCurrentView('settings')}
+        onShowSettings={() => {
+          setShowHomePage(false);
+          setCurrentView('settings');
+        }}
         onShowDownloads={() => {
+          setShowHomePage(false);
           setCurrentView('downloads');
           setDownloadCount(0);
         }}
@@ -303,11 +383,18 @@ const App: React.FC = () => {
       )}
 
       {currentView === 'settings' && (
-        <Settings onClose={() => setCurrentView('browser')} />
+        <Settings onClose={() => {
+          setCurrentView('home');
+          setShowHomePage(true);
+        }} />
       )}
 
       {currentView === 'downloads' && (
         <Downloads onClose={() => setCurrentView('browser')} />
+      )}
+
+      {showHomePage && (
+        <HomePage onNavigate={handleHomePageNavigate} />
       )}
 
       {showFindInPage && (

@@ -1,6 +1,9 @@
-import { BrowserWindow, BrowserView, Menu, MenuItem } from 'electron';
+import { BrowserWindow, BrowserView, Menu, MenuItem, ipcMain } from 'electron';
 import { Tab, IPC } from '../types';
 import { v4 as uuidv4 } from 'uuid';
+import { PerformanceManager } from './PerformanceManager';
+import { webStoreInjectorScript } from './webstore-injector';
+import * as path from 'path';
 
 export class TabManager {
   private window: BrowserWindow;
@@ -8,9 +11,11 @@ export class TabManager {
   private activeTabId: string | null = null;
   private tabData: Map<string, Tab> = new Map();
   private zoomLevels: Map<string, number> = new Map();
+  private performanceManager: PerformanceManager;
 
   constructor(window: BrowserWindow) {
     this.window = window;
+    this.performanceManager = new PerformanceManager();
     // Don't create initial tab here - let main.ts handle it
   }
 
@@ -19,9 +24,15 @@ export class TabManager {
     const browserView = new BrowserView({
       webPreferences: {
         nodeIntegration: false,
-        contextIsolation: true
+        contextIsolation: true,
+        // Performance optimizations
+        backgroundThrottling: true,
+        offscreen: false
       }
     });
+
+    // Apply performance settings
+    PerformanceManager.applyPerformanceSettings(browserView);
 
     const tab: Tab = {
       id: tabId,
@@ -67,6 +78,27 @@ export class TabManager {
 
     browserView.webContents.on('did-finish-load', () => {
       sendNavUpdate();
+      
+      // Inject Chrome Web Store support script
+      const currentUrl = browserView.webContents.getURL();
+      if (currentUrl.includes('chromewebstore.google.com') || currentUrl.includes('chrome.google.com/webstore')) {
+        // First inject the message bridge
+        browserView.webContents.executeJavaScript(`
+          window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'LUNIS_INSTALL_EXTENSION') {
+              // Send to main process via console (we'll capture this)
+              console.log('LUNIS_WEBSTORE_INSTALL:' + JSON.stringify({
+                extensionId: event.data.extensionId,
+                url: event.data.url,
+                tabId: '${tabId}'
+              }));
+            }
+          });
+        `).then(() => {
+          // Then inject the store script
+          return browserView.webContents.executeJavaScript(webStoreInjectorScript);
+        }).catch(err => console.error('Failed to inject Web Store script:', err));
+      }
     });
 
     browserView.webContents.on('did-navigate', () => {
@@ -106,6 +138,15 @@ export class TabManager {
       // Open in new tab instead of new window
       this.createTab(url);
       return { action: 'deny' };
+    });
+
+    // Handle Chrome Web Store installation messages from injected script
+    browserView.webContents.on('console-message', (event, level, message, line, sourceId) => {
+      if (message.startsWith('LUNIS_WEBSTORE_INSTALL:')) {
+        const data = JSON.parse(message.replace('LUNIS_WEBSTORE_INSTALL:', ''));
+        // Forward to main window for processing
+        this.window.webContents.send('install-extension-from-webstore', data.extensionId, data.url, tabId);
+      }
     });
 
     // Load the URL
@@ -156,6 +197,9 @@ export class TabManager {
     this.window.addBrowserView(browserView);
     this.updateBrowserViewBounds(browserView);
     this.activeTabId = tabId;
+    
+    // Mark tab as active for performance tracking
+    this.performanceManager.markTabActive(tabId);
     
     // Send current tab data to renderer to update address bar
     const tab = this.tabData.get(tabId);

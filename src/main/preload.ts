@@ -135,5 +135,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Window management
   detachTab: (tabId: string, url: string, title: string) => ipcRenderer.send(IPC.DETACH_TAB, tabId, url, title),
-  createNewWindow: (url?: string) => ipcRenderer.send(IPC.CREATE_NEW_WINDOW, url)
+  createNewWindow: (url?: string) => ipcRenderer.send(IPC.CREATE_NEW_WINDOW, url),
+
+  // Extensions
+  selectExtensionFolder: () => ipcRenderer.invoke('select-extension-folder'),
+  toggleExtension: (extensionId: string, enabled: boolean) => ipcRenderer.invoke('toggle-extension', extensionId, enabled),
+  removeExtension: (extensionId: string) => ipcRenderer.invoke('remove-extension', extensionId),
+  installFromWebStore: (url: string) => ipcRenderer.invoke('install-from-webstore', url)
 });

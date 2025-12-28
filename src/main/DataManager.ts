@@ -22,7 +22,9 @@ export class DataManager {
     enableJavaScript: true,
     enableImages: true,
     downloadPath: app.getPath('downloads'),
-    restoreSession: true
+    restoreSession: true,
+    theme: 'dark',
+    installedExtensions: []
   };
 
   constructor() {

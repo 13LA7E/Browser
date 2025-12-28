@@ -20,7 +20,13 @@ C:\Browser\release\Lunis Browser-win32-x64\Lunis Browser.exe
 1. Navigate to: `release\Lunis Browser-win32-x64\`
 2. Double-click **Lunis Browser.exe**
 
-#### Option 3: Create a Desktop Shortcut
+#### Option 3: Pin to Taskbar ⭐ (RECOMMENDED)
+1. Navigate to `release\Lunis Browser-win32-x64\`
+2. Right-click **Lunis Browser.exe**
+3. Select **Pin to taskbar**
+4. Now you can launch it from your Windows taskbar anytime!
+
+#### Option 4: Create a Desktop Shortcut
 1. Navigate to `release\Lunis Browser-win32-x64\`
 2. Right-click **Lunis Browser.exe**
 3. Select **Send to** → **Desktop (create shortcut)**
@@ -43,19 +49,24 @@ This will:
 
 ### 📁 What's Included
 The release folder contains:
-- **Electron Browser.exe** - Main executable
+- **Lunis Browser.exe** - Main executable
 - **resources/** - Application files (your compiled code)
 - **DLL files** - Required Electron dependencies
 - **locales/** - Language files
 
 ### 🎯 Features
 Your browser includes:
-- ✅ Multi-tab browsing
+- ✅ Multi-tab browsing with drag-to-detach
 - ✅ Navigation controls (back/forward/reload/home)
+- ✅ Custom homepage with live clock and quick links
 - ✅ Bookmarks with persistence
 - ✅ History tracking
-- ✅ Settings page
-- ✅ Modern dark UI
+- ✅ **6 Beautiful Themes** (Dark, Light, Ocean, Forest, Sunset, Purple)
+- ✅ **Chrome Extensions Support** - Install any unpacked extension
+- ✅ Downloads manager
+- ✅ Settings customization
+- ✅ Window snapping to screen edges/corners
+- ✅ Modern responsive UI
 
 ### 💾 User Data Location
 When running the EXE, user data is saved to:

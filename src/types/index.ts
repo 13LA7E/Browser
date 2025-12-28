@@ -20,6 +20,31 @@ export interface HistoryItem {
   visitedAt: number;
 }
 
+export interface Theme {
+  id: string;
+  name: string;
+  colors: {
+    background: string;
+    foreground: string;
+    accent: string;
+    tabBarBg: string;
+    toolbarBg: string;
+    addressBarBg: string;
+    addressBarBorder: string;
+    buttonHover: string;
+    textPrimary: string;
+    textSecondary: string;
+  };
+}
+
+export interface Extension {
+  id: string;
+  name: string;
+  version: string;
+  enabled: boolean;
+  path: string;
+}
+
 export interface BrowserState {
   tabs: Tab[];
   activeTabId: string | null;
@@ -142,6 +167,8 @@ export interface Settings {
   enableImages: boolean;
   downloadPath: string;
   restoreSession: boolean;
+  theme: string;
+  installedExtensions: Extension[];
 }
 
 export interface Download {
